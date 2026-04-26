@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Result</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #eef2f7;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            margin: 50px auto;
+            width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px gray;
+        }
+        h2 {
+            color: {{ color }};
+        }
+        ul {
+            text-align: left;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: {{ color }};
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            padding: 10px 15px;
+            background: #007BFF;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Prediction Result</h1>
+
+        <h2>{{ prediction }}</h2>
+
+        <p><b>Risk Level:</b> {{ risk }}</p>
+
+        <p class="score">Score: {{ score }}</p>
+
+        <h3>Top Reasons:</h3>
+        <ul>
+            {% for r in reasons %}
+                <li>{{ r }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Recommendations:</h3>
+        <ul>
+            {% for tip in tips %}
+                <li>{{ tip }}</li>
+            {% endfor %}
+        </ul>
+
+        <a href="/">Go Back</a>
+    </div>
+</body>
+</html>
