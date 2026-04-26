@@ -1,4 +1,4 @@
-name: ML CI/CD Pipeline
+name: Optimized ML CI/CD Pipeline
 
 on:
   push:
@@ -9,24 +9,26 @@ env:
 
 jobs:
 
-# -------------------------
-# Parallel Jobs (FAST)
-# -------------------------
+# -----------------------------
+# Parallel Jobs (Speed Boost)
+# -----------------------------
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Running tests..."
+      - name: Run tests
+        run: echo "Running tests..."
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Linting code..."
+      - name: Lint code
+        run: echo "Linting..."
 
-# -------------------------
-# Build + Push (with caching)
-# -------------------------
+# -----------------------------
+# Build + Push with Caching
+# -----------------------------
   build:
     needs: [test, lint]
     runs-on: ubuntu-latest
@@ -34,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Docker Login
@@ -43,7 +45,7 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
 
-      - name: Build and Push Image (with caching)
+      - name: Build and Push Docker Image (with caching)
         run: |
           docker buildx build \
             --cache-from=type=registry,ref=${{ secrets.DOCKER_USER }}/ml-app:cache \
@@ -51,25 +53,35 @@ jobs:
             -t ${{ secrets.DOCKER_USER }}/ml-app:latest \
             --push .
 
-# -------------------------
-# Deploy to EC2
-# -------------------------
+# -----------------------------
+# Deploy to EC2 (Fixed)
+# -----------------------------
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-         script: |
-           sudo docker pull ${{ secrets.DOCKER_USER }}/ml-app:latest
-           sudo docker rm -f $(sudo docker ps -aq) || true
-           sudo docker run -d -p 5000:5000 \
-             --restart=always \
-             --name ml-app \
-             ${{ secrets.DOCKER_USER }}/ml-app:latest
+          script: |
+            echo "Pull latest image"
+            sudo docker pull ${{ secrets.DOCKER_USER }}/ml-app:latest
 
+            echo "Remove container using port 5000 (if exists)"
+            CONTAINER_ID=$(sudo docker ps -q --filter "publish=5000")
+            if [ ! -z "$CONTAINER_ID" ]; then
+              sudo docker stop $CONTAINER_ID
+              sudo docker rm $CONTAINER_ID
+            fi
+
+            echo "Run new container"
+            sudo docker run -d -p 5000:5000 \
+              --restart=always \
+              --name ml-app \
+              ${{ secrets.DOCKER_USER }}/ml-app:latest
+
+            echo "Deployment completed"
