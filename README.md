@@ -13,11 +13,7 @@
 
 ---
 
-## 🔗 Live Demo
 
-👉 http://YOUR-EC2-IP:5000
-
----
 
 ## 🧩 Features
 
